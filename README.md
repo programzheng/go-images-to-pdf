@@ -5,4 +5,4 @@
 ```shell=
 .\go-image-to-pdf.exe output
 ```
-/pdf目錄下就會出現output.pdf
+/pdfs目錄下就會出現output.pdf
