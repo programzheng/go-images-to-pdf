@@ -1,55 +1,69 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-	"io/ioutil"
+	"embed"
 	"log"
-	"mime"
-	"path/filepath"
-	"sort"
-	"strings"
-	"time"
 
-	"github.com/signintech/gopdf"
+	"github.com/wailsapp/wails/v2/pkg/options/mac"
+
+	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/logger"
+	"github.com/wailsapp/wails/v2/pkg/options"
+	"github.com/wailsapp/wails/v2/pkg/options/windows"
 )
 
-const IMAGES_PATH = "./images"
-const PDFS_PATH = "./pdfs"
+//go:embed frontend/src
+var assets embed.FS
+
+//go:embed build/appicon.png
+var icon []byte
 
 func main() {
-	flag.Parse()
+	// Create an instance of the app structure
+	app := NewApp()
 
-	pdfFileName := flag.Arg(0)
-	if pdfFileName == "" {
-		//default pdf file name
-		pdfFileName = time.Now().Format("20060102150405")
-	}
+	// Create application with options
+	err := wails.Run(&options.App{
+		Title:             "go-images-to-pdf",
+		Width:             720,
+		Height:            570,
+		MinWidth:          720,
+		MinHeight:         570,
+		MaxWidth:          1280,
+		MaxHeight:         740,
+		DisableResize:     false,
+		Fullscreen:        false,
+		Frameless:         false,
+		StartHidden:       false,
+		HideWindowOnClose: false,
+		RGBA:              &options.RGBA{R: 33, G: 37, B: 43, A: 255},
+		Assets:            assets,
+		LogLevel:          logger.DEBUG,
+		OnStartup:         app.startup,
+		OnDomReady:        app.domReady,
+		OnShutdown:        app.shutdown,
+		Bind: []interface{}{
+			app,
+		},
+		// Windows platform specific options
+		Windows: &windows.Options{
+			WebviewIsTransparent: false,
+			WindowIsTranslucent:  false,
+			DisableWindowIcon:    false,
+		},
+		Mac: &mac.Options{
+			TitleBar:             mac.TitleBarHiddenInset(),
+			WebviewIsTransparent: true,
+			WindowIsTranslucent:  true,
+			About: &mac.AboutInfo{
+				Title:   "Vanilla Template",
+				Message: "Part of the Wails projects",
+				Icon:    icon,
+			},
+		},
+	})
 
-	pdf := gopdf.GoPdf{}
-	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
-
-	files, err := ioutil.ReadDir(IMAGES_PATH)
 	if err != nil {
-		log.Fatal("read dir error:", err)
+		log.Fatal(err)
 	}
-	//sort by file ModTime from old to new
-	sort.Slice(files, func(i, j int) bool { return files[i].ModTime().UnixNano() < files[j].ModTime().UnixNano() })
-
-	for _, f := range files {
-		fileName := f.Name()
-		fileExtension := filepath.Ext(fileName)
-		mime := mime.TypeByExtension(fileExtension)
-		//check file is image
-		if strings.Contains(mime, "image") {
-			pdf.AddPage()
-			//set image to full page
-			err := pdf.Image(IMAGES_PATH+"/"+fileName, 0, 0, gopdf.PageSizeA4) //print image
-			if err != nil {
-				log.Fatal("print image error:", err)
-			}
-		}
-	}
-
-	pdf.WritePdf(fmt.Sprintf("%v/%v.pdf", PDFS_PATH, pdfFileName))
 }

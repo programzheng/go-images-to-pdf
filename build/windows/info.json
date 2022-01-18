@@ -1,0 +1,15 @@
+{
+	"fixed": {
+		"file_version": "1.0.0"
+	},
+	"info": {
+		"0000": {
+			"ProductVersion": "1.0.0",
+			"CompanyName": "go-images-to-pdf",
+			"FileDescription": "go-images-to-pdf",
+			"LegalCopyright": "Copyright.........",
+			"ProductName": "go-images-to-pdf",
+			"Comments": "Built using Wails (https://wails.app)"
+		}
+	}
+}

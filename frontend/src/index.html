@@ -1,0 +1,25 @@
+<html>
+
+<head>
+  <title>go-images-to-pdf</title>
+  <link rel="stylesheet" href="/main.css">
+</head>
+
+<body data-wails-drag>
+  <div>
+    <span class="summary" id="summary">請選擇檔案，選擇完後會自動關閉程式</span>
+  </div>
+  <script src="/main.js"></script>
+</body>
+<script>
+  const summary = document.getElementById('summary')
+  const summaryOriginText = summary.innerText || summary.textContent
+  setInterval(() => {
+    summary.innerHTML = summary.innerText + '.'
+  },500)
+
+  setInterval(() => {
+    summary.innerHTML = summaryOriginText
+  }, 3000)
+</script>
+</html>
